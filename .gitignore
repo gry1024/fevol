@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+runs/_smoke*
+runs/*/round_*.jsonl
+runs/*/events.jsonl
+runs/*/state.json
+runs/demo_run.log
+.DS_Store

@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fevol"
+version = "0.1.0"
+description = "LLM-agent driven factor evolution"
+requires-python = ">=3.10"
+dependencies = ["numpy", "pandas", "bottleneck", "matplotlib"]
+
+[tool.setuptools]
+packages = ["fevol"]

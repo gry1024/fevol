@@ -1,0 +1,8 @@
+[
+  "Div(Sub($close,TsMean($close,20)),Add(TsStd($close,20),0.000001))",
+  "Div(TsMean($amt,5),TsMean($amt,20))",
+  "Sub(Rank(TsMean($close,20)),Rank($close))",
+  "Div(TsDelta($close,5),Add(TsStd(TsDelta($close,5),20),0.000001))",
+  "TsCorr($close,$amt,20)",
+  "Div(TsMaxDiff($high,20),Add(TsMean($close,20),0.000001))"
+]
