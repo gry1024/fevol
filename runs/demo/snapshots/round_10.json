@@ -1,0 +1,27 @@
+{
+  "round": 10,
+  "exprs": [
+    "Div(Sub(TsEMA(vwap, 10), TsMean(vwap, 20)), Add(TsStd(close, 20), 1e-06))",
+    "Div(Div(TsRank(volume, 5), TsMean(num_trades, 5)), Add(TsStd(TsDelta(amt, 5), 20), 1e-06))",
+    "Sub(Rank(TsMean(close, 20)), Rank(close))",
+    "Div(TsCov(Sub(high, low), volume, 20), Add(TsStd(TsDelta(close, 5), 20), 1e-06))",
+    "TsCorr(TsRank(close, 5), TsRank(amt, 5), 20)",
+    "Div(TsCov(Sub(high, low), num_trades, 10), Add(TsMean(close, 20), 1e-06))"
+  ],
+  "weights": [
+    0.03886348496038084,
+    0.04606170657830044,
+    0.06346950943595027,
+    -0.0007059684575690837,
+    -0.034144194116493956,
+    -0.043286912138821555
+  ],
+  "stats": {
+    "size": 6,
+    "utility": 0.1111402275243861,
+    "best_abs_ic": 0.09665868462526227,
+    "mean_abs_ic": 0.0717728793024219,
+    "mean_nodes": 24.833333333333332
+  },
+  "strategy": "分母用TsStd(TsDelta(amt,5),20)替TsMean(amt,20)有效，IC升至0.097且C正入池；同源替换num_trades或缩窗至10均C负被拒。EMA/close换vwap系列IC低且corr0.79超限。下轮优先对分母做波动率/差分结构改造并控corr<0.73，避免同源变量替换与短窗EMA。"
+}

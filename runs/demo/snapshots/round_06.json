@@ -1,0 +1,27 @@
+{
+  "round": 6,
+  "exprs": [
+    "Div(Sub(TsWMA(close, 20), TsMean(close, 20)), Add(TsStd(close, 20), 1e-06))",
+    "Div(Div(TsMean(volume, 5), TsMean(num_trades, 5)), TsMean(amt, 20))",
+    "Sub(Rank(TsMean(close, 20)), Rank(close))",
+    "Div(TsCov(Sub(high, low), volume, 20), Add(TsStd(TsDelta(close, 5), 20), 1e-06))",
+    "TsCorr(close, amt, 20)",
+    "Div(TsCov(Sub(high, low), close, 20), Add(TsMean(close, 20), 1e-06))"
+  ],
+  "weights": [
+    0.032997141839075116,
+    0.03734779613756811,
+    0.06496635550218743,
+    -0.04931374176063785,
+    -0.011346358285872367,
+    -0.03479225794060403
+  ],
+  "stats": {
+    "size": 6,
+    "utility": 0.10775796115242571,
+    "best_abs_ic": 0.0815569331156065,
+    "mean_abs_ic": 0.06283532070513738,
+    "mean_nodes": 22.166666666666668
+  },
+  "strategy": "本轮TsCov(Sub(high,low),volume,20)分子成功替换(IC0.078,corr0.37)；vwap同源协方差corr0.93被拒。分母保持TsStd(TsDelta(close,5),20)有效。下轮优先价量协方差配volume/num_trades而非vwap/amt，避免与池内amt同源；纯vwap动量与缩窗无效。"
+}

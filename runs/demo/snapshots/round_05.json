@@ -1,0 +1,27 @@
+{
+  "round": 5,
+  "exprs": [
+    "Div(Sub(TsWMA(close, 20), TsMean(close, 20)), Add(TsStd(close, 20), 1e-06))",
+    "Div(Div(TsMean(volume, 5), TsMean(num_trades, 5)), TsMean(amt, 20))",
+    "Sub(Rank(TsMean(close, 20)), Rank(close))",
+    "Div(TsDelta(close, 5), Add(TsStd(TsDelta(close, 5), 20), 1e-06))",
+    "TsCorr(close, amt, 20)",
+    "Div(TsCov(Sub(high, low), close, 20), Add(TsMean(close, 20), 1e-06))"
+  ],
+  "weights": [
+    0.0344212469078717,
+    0.044086342952733934,
+    0.07425375221757068,
+    0.005981693026203771,
+    -0.026224275479774104,
+    -0.03625351567245338
+  ],
+  "stats": {
+    "size": 6,
+    "utility": 0.10005866204647786,
+    "best_abs_ic": 0.0815569331156065,
+    "mean_abs_ic": 0.05568291102503745,
+    "mean_nodes": 21.0
+  },
+  "strategy": "本轮接受：分子用TsCov(Sub(high,low),close,20)提|IC|，但分母TsMed/TsMean(amt,20)致max_corr>0.92被拒；改价量比Div(volume/num_trades,amt)成功入池(IC0.066,corr0.51)。拒绝：同源比值、纯缩窗。下轮保持分母保护，分子试vwap/volume或价量协方差，避免与amt同源。"
+}

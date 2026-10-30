@@ -7,9 +7,10 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
+from .backtest import benchmark_returns, run_pool
 from .data import MarketData
 from .expression import Expression
-from .metrics import daily_ic, pool_utility, rank_signal
+from .metrics import daily_ic, rank_signal
 
 BLUE, GREY, ORANGE, RED = "#1f5fa8", "#9aa0a6", "#e08c2f", "#c0392b"
 
@@ -108,7 +109,67 @@ def plot_ic(state, data, out):
     plt.close(fig)
 
 
-def write_summary(state, out):
+def load_snapshots(run_dir):
+    files = sorted((Path(run_dir) / "snapshots").glob("round_*.json"))
+    return [json.loads(f.read_text(encoding="utf-8")) for f in files]
+
+
+def oos_backtest(state, data_dir, run_dir, figures):
+    """在样本外窗口重放每轮池快照，用样本内权重组合，得到可交易净收益。"""
+    cfg = state["config"]
+    if not cfg.get("oos_start"):
+        return None
+    data = MarketData(data_dir, start=cfg["oos_start"], end=cfg.get("oos_end"),
+                      label_days=cfg["label_days"], min_listing_days=cfg["min_listing_days"],
+                      warmup=cfg["warmup"])
+    snapshots = load_snapshots(run_dir)
+    if not snapshots:
+        return None
+    results = {snap["round"]: run_pool(snap, data) for snap in snapshots}
+    bench = benchmark_returns(data)
+    rounds = sorted(results)
+    last = rounds[-1]
+    picks = sorted({rounds[0], rounds[len(rounds) // 3], rounds[2 * len(rounds) // 3], last})
+
+    fig, ax = plt.subplots(figsize=(10, 4.0), constrained_layout=True)
+    colors = [GREY, "#8fb3d9", BLUE, "#123c66"]
+    for color, r in zip(colors, picks):
+        net = np.nan_to_num(results[r]["net"], nan=0.0)
+        equity = np.cumprod(1 + net)
+        ax.plot(equity, color=color, lw=1.9,
+                label=f"round {r}  Sharpe {results[r]['metrics']['sharpe']:.2f}  "
+                      f"ann {results[r]['metrics']['annual_return']:+.1%}")
+    ax.plot(np.cumprod(1 + np.nan_to_num(bench, nan=0.0)), color=ORANGE, lw=1.2, ls="--",
+            label="equal-weight market")
+    ax.axhline(1, color="#333", lw=.7)
+    ax.set_title(f"Out-of-sample long-short equity ({cfg['oos_start']} to {cfg.get('oos_end') or 'end'})")
+    ax.set_xlabel("trading day"); ax.set_ylabel("equity (1 = start)")
+    ax.grid(alpha=.22); ax.legend(frameon=False, fontsize=8)
+    fig.savefig(figures / "oos_returns.png", dpi=170)
+    plt.close(fig)
+
+    fig, axes = plt.subplots(1, 2, figsize=(11, 3.5), constrained_layout=True)
+    ann = [results[r]["metrics"]["annual_return"] for r in rounds]
+    shp = [results[r]["metrics"]["sharpe"] for r in rounds]
+    axes[0].bar([str(r) for r in rounds], ann, color=BLUE)
+    axes[0].axhline(ann[0], color=GREY, ls="--", lw=1)
+    axes[0].set_title("OOS annualized return by round"); axes[0].set_xlabel("round")
+    axes[0].grid(axis="y", alpha=.25)
+    axes[1].bar([str(r) for r in rounds], shp, color=BLUE)
+    axes[1].axhline(shp[0], color=GREY, ls="--", lw=1)
+    axes[1].set_title("OOS Sharpe by round"); axes[1].set_xlabel("round")
+    axes[1].grid(axis="y", alpha=.25)
+    fig.savefig(figures / "oos_rounds.png", dpi=170)
+    plt.close(fig)
+
+    rows = [{"round": r, **results[r]["metrics"], "abs_ic": float(np.nanmean(np.abs(
+        daily_ic(results[r]["combined"], data.label))))} for r in rounds]
+    return {"rows": rows, "window": [str(data.dates[0].date()), str(data.dates[-1].date())],
+            "sessions": len(data.dates), "picks": picks, "benchmark_annual":
+            float(np.prod(1 + np.nan_to_num(bench, nan=0.0)) ** (244 / len(bench)) - 1)}
+
+
+def write_summary(state, out, oos=None):
     rounds = state["rounds"]
     head = ("| 轮次 | 池效用 | 平均 \\|RankIC\\| | 最优 \\|RankIC\\| | 子代 | 接受 | 耗时(s) |\n"
             "| --- | ---: | ---: | ---: | ---: | ---: | ---: |\n")
@@ -123,10 +184,22 @@ def write_summary(state, out):
         pool += f"| F{i} | `{expr}` | {metric['reward']:+.4f} | {metric['cost']:.4f} | {metric['nodes']} |\n"
     strategies = [e["strategy"] for e in state_strategies(state)]
     strategy_text = "\n".join(f"- 第 {i + 1} 轮：{s}" for i, s in enumerate(strategies))
+    oos_text = "（未配置样本外区间）"
+    oos_title = "## 样本外回测"
+    if oos:
+        oos_title = (f"## 样本外回测（{oos['window'][0]} 至 {oos['window'][1]}，"
+                     f"{oos['sessions']} 个交易日，多空各 10% 等权，次日开盘调仓，双边 10bp 成本）")
+        oos_text = ("| 轮次 | 年化收益 | 夏普 | 最大回撤 | 组合 \\|RankIC\\| |\n"
+                    "| --- | ---: | ---: | ---: | ---: |\n")
+        for row in oos["rows"]:
+            oos_text += (f"| {row['round']} | {row['annual_return']:+.2%} | {row['sharpe']:.2f} | "
+                         f"{row['max_drawdown']:.1%} | {row['abs_ic']:.4f} |\n")
     text = f"""# 因子演化报告
 
 ## 池质量
 {head}
+{oos_title}
+{oos_text}
 ## 最终因子池
 {pool}
 ## 演化策略更新
@@ -137,6 +210,8 @@ def write_summary(state, out):
 ![accepted replacements](figures/improvement.png)
 ![final pool](figures/pool.png)
 ![combined IC](figures/ic.png)
+![OOS returns](figures/oos_returns.png)
+![OOS by round](figures/oos_rounds.png)
 """
     (out / "summary.md").write_text(text, encoding="utf-8")
 
@@ -165,5 +240,6 @@ def build(run_dir, data_dir):
     plot_improvement(state, figures)
     plot_pool(state, figures)
     plot_ic(state, data, figures)
-    write_summary(state, out)
+    oos = oos_backtest(state, data_dir, out, figures)
+    write_summary(state, out, oos)
     print(f"Wrote {out / 'summary.md'}")

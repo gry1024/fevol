@@ -1,0 +1,27 @@
+{
+  "round": 2,
+  "exprs": [
+    "Div(Sub(TsWMA(close, 20), TsMean(close, 20)), Add(TsStd(close, 20), 1e-06))",
+    "Div(TsMean(amt, 5), TsMean(amt, 20))",
+    "Sub(Rank(TsMean(close, 20)), Rank(close))",
+    "Div(TsDelta(close, 5), Add(TsStd(TsDelta(close, 5), 20), 1e-06))",
+    "TsCorr(close, amt, 20)",
+    "Div(TsMaxDiff(high, 20), Add(TsMean(close, 20), 1e-06))"
+  ],
+  "weights": [
+    0.020354161284185473,
+    -0.01530346770945433,
+    0.07998778933246636,
+    -0.00428488023887589,
+    -0.04458374229061728,
+    0.04596267902472772
+  ],
+  "stats": {
+    "size": 6,
+    "utility": 0.0836005081538355,
+    "best_abs_ic": 0.06528848835922878,
+    "mean_abs_ic": 0.037703609202174214,
+    "mean_nodes": 18.333333333333332
+  },
+  "strategy": "本轮仅WMA替换均值被接受但|IC|反降，靠池增量入池；缩短窗口对低IC父因子小幅提分却因credit不足被拒。下轮优先改分母结构而非分子平滑，避免同源嵌套与纯窗口缩短；保留分母保护，慎用秩变换。"
+}

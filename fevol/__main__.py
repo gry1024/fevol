@@ -14,6 +14,7 @@ from .runner import EvolutionRunner
 def run_evolve(args):
     config = RunConfig(
         data_dir=Path(args.data), out_dir=Path(args.out), start=args.start, end=args.end,
+        oos_start=args.oos_start, oos_end=args.oos_end,
         label_days=args.label_days, capacity=args.capacity, rounds=args.rounds,
         parents=args.parents, max_children=args.children, max_mechanisms=args.mechanisms,
         corr_gate=args.corr_gate, model=args.model, temperature=args.temperature)
@@ -45,6 +46,8 @@ def main():
     evolve.add_argument("--seeds", default=None, help="初始因子 JSON 文件")
     evolve.add_argument("--start", default="2025-01-01")
     evolve.add_argument("--end", default=None)
+    evolve.add_argument("--oos-start", default=None, help="样本外回测起点，如 2026-01-01")
+    evolve.add_argument("--oos-end", default=None, help="样本外回测终点，默认数据末尾")
     evolve.add_argument("--label-days", type=int, default=5)
     evolve.add_argument("--capacity", type=int, default=6)
     evolve.add_argument("--rounds", type=int, default=8)

@@ -50,8 +50,9 @@ class MarketData:
         self._age = np.cumsum(np.isfinite(self._raw["close"]), axis=0)
         self._eligible = (np.isfinite(self._raw["close"]) & (np.isfinite(self._raw["amt"]))
                           & (self._raw["amt"] > 0) & (self._age >= min_listing_days))
-        self._label = self._forward_returns()
+        self._label = self.forward(label_days)
         self._label[~self._eligible] = np.nan
+        self._daily = self.forward(1)
 
     def _make_adjustment(self):
         """以首次有效累计因子为基准，做比例复权（避免绝对值量纲差异）。"""
@@ -63,13 +64,12 @@ class MarketData:
         ratio[~np.isfinite(ratio)] = 1.0
         return ratio
 
-    def _forward_returns(self):
+    def forward(self, horizon):
         """t 日信号 -> t+1 开盘进场 -> t+1+h 开盘离场。"""
         op = self._raw["open"] * self._adjust
-        h = self.label_days
         out = np.full(op.shape, np.nan)
-        if len(op) > h + 1:
-            out[:-(h + 1)] = op[h + 1:] / op[1:-h] - 1
+        if len(op) > horizon + 1:
+            out[:-(horizon + 1)] = op[horizon + 1:] / op[1:-horizon] - 1
         return out
 
     def _compute(self, name):
@@ -95,6 +95,11 @@ class MarketData:
     @property
     def label(self):
         return self._label[self._eval_start:]
+
+    @property
+    def daily_returns(self):
+        """单日可交易收益：t 日收盘信号，t+1 开盘买，t+2 开盘卖。"""
+        return self._daily[self._eval_start:]
 
     @property
     def shape(self):

@@ -9,6 +9,8 @@ class RunConfig:
     out_dir: Path                       # 运行产物目录
     start: str = "2025-01-01"           # 评估区间起点
     end: str | None = None              # 评估区间终点（None 表示数据末尾）
+    oos_start: str | None = None        # 样本外回测起点
+    oos_end: str | None = None          # 样本外回测终点
     label_days: int = 5                 # 前瞻收益周期（开盘到开盘）
     min_listing_days: int = 60          # 最少上市交易日
     warmup: int = 260                   # 滚动窗口预热天数

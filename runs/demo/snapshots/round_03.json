@@ -1,0 +1,27 @@
+{
+  "round": 3,
+  "exprs": [
+    "Div(Sub(TsWMA(close, 20), TsMean(close, 20)), Add(TsStd(close, 20), 1e-06))",
+    "Div(TsMean(amt, 5), TsMean(amt, 20))",
+    "Sub(Rank(TsMean(close, 20)), Rank(close))",
+    "Div(TsDelta(close, 5), Add(TsStd(TsDelta(close, 5), 20), 1e-06))",
+    "TsCorr(close, amt, 20)",
+    "Div(TsMaxDiff(high, 20), Add(TsMean(close, 20), 1e-06))"
+  ],
+  "weights": [
+    0.020354161284185473,
+    -0.01530346770945433,
+    0.07998778933246636,
+    -0.00428488023887589,
+    -0.04458374229061728,
+    0.04596267902472772
+  ],
+  "stats": {
+    "size": 6,
+    "utility": 0.0836005081538355,
+    "best_abs_ic": 0.06528848835922878,
+    "mean_abs_ic": 0.037703609202174214,
+    "mean_nodes": 18.333333333333332
+  },
+  "strategy": "本轮零接受：改分母(TsMed)、缩短窗口均小幅提|IC|但credit≈0或为负，且max_corr逼近0.76门槛被拒。下轮优先改分子结构或换特征(vwap/volume)以脱同源，避免仅换分母平滑、纯缩窗；保留分母保护，控相关<0.75。"
+}

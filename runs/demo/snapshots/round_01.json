@@ -1,0 +1,27 @@
+{
+  "round": 1,
+  "exprs": [
+    "Div(Sub(close, TsMean(close, 20)), Add(TsStd(close, 20), 1e-06))",
+    "Div(TsMean(amt, 5), TsMean(amt, 20))",
+    "Sub(Rank(TsMean(close, 20)), Rank(close))",
+    "Div(TsDelta(close, 5), Add(TsStd(TsDelta(close, 5), 20), 1e-06))",
+    "TsCorr(close, amt, 20)",
+    "Div(TsMaxDiff(high, 20), Add(TsMean(close, 20), 1e-06))"
+  ],
+  "weights": [
+    0.02750457192860282,
+    -0.014461830192393936,
+    0.07941435309609259,
+    -0.0192708175950095,
+    -0.04479731532384574,
+    0.044650740022699795
+  ],
+  "stats": {
+    "size": 6,
+    "utility": 0.08330618945929295,
+    "best_abs_ic": 0.06528848835922878,
+    "mean_abs_ic": 0.03966088356909695,
+    "mean_nodes": 17.666666666666668
+  },
+  "strategy": "本轮窗口缩短有效：TsCorr(close,amt,20→10)提升|IC|且通过门槛；秩变换降IC。分母替换为波动率结构致相关性0.77被拒，应避免同源嵌套。下轮优先缩短滚动窗口、保留分母保护，避免秩变换与高相关结构改动。"
+}

@@ -1,0 +1,27 @@
+{
+  "round": 4,
+  "exprs": [
+    "Div(Sub(TsWMA(close, 20), TsMean(close, 20)), Add(TsStd(close, 20), 1e-06))",
+    "Div(TsMean(amt, 5), TsMean(amt, 20))",
+    "Sub(Rank(TsMean(close, 20)), Rank(close))",
+    "Div(TsDelta(close, 5), Add(TsStd(TsDelta(close, 5), 20), 1e-06))",
+    "TsCorr(close, amt, 20)",
+    "Div(TsCov(Sub(high, low), close, 20), Add(TsMean(close, 20), 1e-06))"
+  ],
+  "weights": [
+    0.03551026584136655,
+    -0.014152456482417503,
+    0.06244375690788348,
+    0.007896055037515474,
+    -0.021474963007389557,
+    -0.06373499348357119
+  ],
+  "stats": {
+    "size": 6,
+    "utility": 0.09258173948363686,
+    "best_abs_ic": 0.0815569331156065,
+    "mean_abs_ic": 0.05048973880690786,
+    "mean_nodes": 19.5
+  },
+  "strategy": "本轮接受：分子改TsCov(Sub(high,low),close,20)显著提|IC|与credit，相关0.60安全；换vwap略降。拒绝点：同源vwap/close比值变体max_corr>0.82，仅缩窗credit≈0。下轮优先保持分母保护、改分子为价量协方差并试vwap/volume脱同源；避免纯缩窗与同源比值。"
+}

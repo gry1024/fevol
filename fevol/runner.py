@@ -20,6 +20,7 @@ class EvolutionRunner:
         self.pool = FactorPool(data, config)
         self.out = Path(config.out_dir)
         self.out.mkdir(parents=True, exist_ok=True)
+        (self.out / "snapshots").mkdir(exist_ok=True)
         self.rng = random.Random(seed)
         self.chain_of = {}          # 表达式 -> 链条 ID
         self.memory = {}            # 链条 ID -> 演化历史
@@ -119,8 +120,8 @@ class EvolutionRunner:
             "outcome": decision["outcome"], "reason": decision["reason"],
             "child": decision["child"]})
         self.memory[chain] = self.memory[chain][-6:]
-        self.chain_of.pop(parent)
-        if decision["child"]:
+        if decision["child"]:  # 保留父因子时链条归属不变
+            self.chain_of.pop(parent)
             self.chain_of[decision["child"]] = chain
         self.log("replacement", **decision)
         return decision
@@ -192,6 +193,10 @@ class EvolutionRunner:
             "lineage": self.lineage, **extra,
         }
         write_json(self.out / "state.json", state)
+        write_json(self.out / "snapshots" / f"round_{round_id:02d}.json",
+                   {"round": round_id, "exprs": list(self.pool.exprs),
+                    "weights": self.pool.to_dict()["weights"], "stats": self.pool.stats(),
+                    "strategy": self.strategy})
         with (self.out / "events.jsonl").open("w", encoding="utf-8") as file:
             for event in self.events:
                 file.write(json.dumps(event, ensure_ascii=False, allow_nan=False) + "\n")

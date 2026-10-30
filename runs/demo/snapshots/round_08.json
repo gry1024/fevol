@@ -1,0 +1,27 @@
+{
+  "round": 8,
+  "exprs": [
+    "Div(Sub(TsEMA(vwap, 10), TsMean(vwap, 20)), Add(TsStd(close, 20), 1e-06))",
+    "Div(Div(TsRank(volume, 5), TsMean(num_trades, 5)), TsMean(amt, 20))",
+    "Sub(Rank(TsMean(close, 20)), Rank(close))",
+    "Div(TsCov(Sub(high, low), volume, 20), Add(TsStd(TsDelta(close, 5), 20), 1e-06))",
+    "TsCorr(TsRank(close, 5), TsRank(amt, 5), 20)",
+    "Div(TsCov(Sub(high, low), num_trades, 10), Add(TsMean(close, 20), 1e-06))"
+  ],
+  "weights": [
+    0.03977399225969689,
+    0.0363233166586113,
+    0.06353700149465756,
+    -0.006248037085264403,
+    -0.03640368323827246,
+    -0.047002379722305455
+  ],
+  "stats": {
+    "size": 6,
+    "utility": 0.11106190913986433,
+    "best_abs_ic": 0.09526190788674292,
+    "mean_abs_ic": 0.07070617303052264,
+    "mean_nodes": 23.5
+  },
+  "strategy": "TsRank替换外层TsMean(volume,5)提升IC至0.09且corr0.69可入池；EMA(10)替WMA(20)配vwap可入池但corr0.75边缘。避免close同源EMA(corr0.79被拒)及TsStd(TsDelta)分母。下轮优先：对分子各分量试TsRank、短窗EMA(10)替长窗均值，保持原分母，控corr<0.75。"
+}

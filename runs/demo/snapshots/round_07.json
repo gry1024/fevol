@@ -1,0 +1,27 @@
+{
+  "round": 7,
+  "exprs": [
+    "Div(Sub(TsWMA(close, 20), TsMean(close, 20)), Add(TsStd(close, 20), 1e-06))",
+    "Div(Div(TsMean(volume, 5), TsMean(num_trades, 5)), TsMean(amt, 20))",
+    "Sub(Rank(TsMean(close, 20)), Rank(close))",
+    "Div(TsCov(Sub(high, low), volume, 20), Add(TsStd(TsDelta(close, 5), 20), 1e-06))",
+    "TsCorr(TsRank(close, 5), TsRank(amt, 5), 20)",
+    "Div(TsCov(Sub(high, low), num_trades, 10), Add(TsMean(close, 20), 1e-06))"
+  ],
+  "weights": [
+    0.041657292380016475,
+    0.02995300371229012,
+    0.06711206586157069,
+    -0.026505807671288035,
+    -0.03487564162409509,
+    -0.042528405200035806
+  ],
+  "stats": {
+    "size": 6,
+    "utility": 0.11079181029258678,
+    "best_abs_ic": 0.09526190788674292,
+    "mean_abs_ic": 0.06592736600521303,
+    "mean_nodes": 23.5
+  },
+  "strategy": "TsRank内嵌配对(close与amt/volume,窗口5)有效提升IC；TsCov(high-low,num_trades)窗口10优于20，窗口20虽IC高但corr0.80被拒。分母替换为TsStd(TsDelta)池增量转负。下轮优先：价量协方差用num_trades配短窗10，保持原分母；避免窗口20及vwap/amt同源。"
+}
